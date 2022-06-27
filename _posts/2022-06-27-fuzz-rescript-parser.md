@@ -10,20 +10,21 @@ tags:
 ---
 # AFL++ tutorial: How to crash Rescript parser
 
-This post is a tutorial of [AFL++](https://aflplus.plus/)[^aflpp], a popular fuzzer which has detected dozens of software bugs. In this post, the main target of fuzzing is a [parser](https://github.com/rescript-lang/syntax) of [Rescript](https://rescript-lang.org/) compiler. Motivated by [this](https://forum.rescript-lang.org/t/compiler-testing-via-fuzzing/3306/3), implying there might be bugs which can be caught with primary fuzzing techniques, I started my first bug hunt hoping it would help this young language system to be more mature. 🙂
+This post is a tutorial of [AFL++](https://aflplus.plus/)[^aflpp], a popular fuzzer which has detected dozens of software bugs. In this post, the main target of fuzzing is a [parser](https://github.com/rescript-lang/syntax) of [Rescript](https://rescript-lang.org/) compiler. Motivated by [this](https://forum.rescript-lang.org/t/compiler-testing-via-fuzzing/3306/3), implying there might be bugs which can be caught with primary fuzzing techniques, I started my first bug hunt hoping it would help this young language system to be more mature.
 
 ## Background
 
-This section explains basic concept of evolutionary fuzzing, so that make it easy to understand the intention of each step in fuzzing(label). If you don't mind, you can skip this and go to Setup(label) directly.
+This section explains basic concept of evolutionary fuzzing which is a mainstream of fuzzing technique. You can use AFL++ without reading this explanatory section, so if you don't mind how the fuzzer struggles with finding bug you can skip this and go to [Setup](#setup) directly.
 
 <figure>
-  <img
+  <center><img
   src="evolutionary_fuzzing.png"
-  alt="abcde">
+  width="600"
+  alt="abcde"></center>
   <center><figcaption> Figure 1. Evolutionary Fuzzing </figcaption></center>
 </figure>
 
-Figure 1 is a brief summary of evolutionary fuzzing. 'Evolutionary' means, the fuzzer evolves by updating input corpus so that it can start another iteration based on known start point. An input is regarded as useful if it found a new coverage, and added to input corpus. For each step,
+Figure 1 is a brief summary of evolutionary fuzzing. 'Evolutionary' means, the fuzzer evolves by updating input corpus so that it can start another iteration based on known, effective start point. An input is regarded as useful if it found a new coverage, and added to input corpus. Many state-of-the-art fuzzers including [AFL](https://lcamtuf.coredump.cx/afl/) and [LibFuzer](https://llvm.org/docs/LibFuzzer.html) have adopted this strategy. For each interation in Figure 1,
 
 1. Fuzzing starts with user provided inputs, which comply with proper input type of PUT(program under test). In our case, they should be Rescript source files.
 2. Select one input from input corpus, and randomly mutate bytes.
@@ -69,9 +70,71 @@ There are 3 components to be installed. FYI, I've been using Ubuntu 20.04.
    opam install dune reanalyze
    ```
 2. Install Rescript parser([instruction](https://github.com/rescript-lang/syntax#setup--usage-for-repo-devs-only)).
+   > **Note**
+   > In this post, previous commit(af00a46042c76ca8342dd6857ebe8776de00200c) is used instead of latest to reproduce currently know [bug](https://github.com/rescript-lang/syntax/pull/540).
+   > If you want to follow, checkout to that commit before building.
 
-If the installation completed successfully, The parser binary, which is the main target of fuzzing, would be located in `<path to syntax>/_build/default/cli/res_cli.exe`.
 
-## Fuzz
+Assuming that Rescript parser is cloned under `$HOME`, The parser binary, which is the main target of fuzzing, would be located in
+`~/syntax/_build/default/cli/res_cli.exe`.
+
+## Prepare Fuzzing Inputs
+
+Gather valid inputs for PUT, and minimize input corpus by removing redundant inputs whose coverages are not unique. A study[^seedselection] demonstrated empirically that the input seeds have a critical impact on fuzzing performance, and recommended to use large & unique input seeds.
+
+#### Collect Rescript source files
+
+You can find a variety of open-source Rescript project repositories [here](https://www.libhunt.com/l/rescript). Gather them in a directory and extract only rescript sources.
+1. Make a directory `rescript_projs` under `$HOME`.
+   ```sh
+   cd ~
+   mkdir rescript_projs
+   ```
+2. Clone Rescript repositories.
+   ```sh
+   cd rescript_projs
+   git clone <git repo>
+   ... # repeat
+   ```
+3. Extract Rescript source files in another directory `rs_files`.
+   ```sh
+   cd ~
+   mkdir re_files
+   find rescript_projs -name {'*.res', '*.resi'} | xargs cp -t rs_files/
+   ```
+
+#### Minimize input corpus
+
+Gathered source files in `rs_files` should be minimized so that only unique inputs are left. As mentioned above, an input is 'unique' if its coverage is new. Intuitively, fuzzer would stick to exploring similar codes rather than searching diversely if there were lots of duplicates. This step is done by AFL++, with instrumented target program.
+```sh
+afl-cmin -i ~/rs_files -o ~/rs_files_unique -- ~/syntax/_build/default/cli/res_cli.exe  @@
+```
+This command copies uniques inputs from `rs_files` to `rs_files_unique`, which is also created automatically. `@@` is a place holder where a fuzzed input is supposed to be.
+
+## Do Fuzzing
+
+Start fuzzing by typing a command below. Again, `fuzz_report`, directory for report is created automatically.
+```sh
+afl-fuzz -i ~/rs_files_unique -o ~/fuzz_report -- ~/syntax/_build/default/cli/res_cli.exe  @@
+```
+You will see an interface that shows fuzzing status.
+
+Crashing inputs can be found in `~/fuzz_report/...`.
+
+You can manually crash the parser with found crashing inputs, like
+```sh
+~/syntax/_build/default/cli/res_cli.exe ~/fuzz_report/...
+```
+
+To trace a call stack for debuggin, execute parser with setting ocaml environment variable.
+```sh
+export OCAMLRUNPARAM=b
+~/syntax/_build/default/cli/res_cli.exe ~/fuzz_report/...
+```
+
+## Conclusion
+
+AFL++ was able to find previously unknown bugs of Rescript parser. Moreover, it seems that there are still rooms for this tool to play an important role. The reason why this general fuzzing tool works well comes from the fact that the input type of parser is 'string', which has a simple, one-dimensional structure. Therefore naive application of this tool to Rescript compiler won't work because byte-level mutation of AFL++ would probably make input source code invalid, leading to failure in parsing process.
 
 [^aflpp]: A community-maintained version of [AFL](https://lcamtuf.coredump.cx/afl/), which equips additional features and enhancements.
+[^seedselection]: Herrera et al., "Seed selection for successful fuzzing". ISSTA 2021. https://doi.org/10.1145/3460319.3464795
