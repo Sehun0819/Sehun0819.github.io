@@ -37,7 +37,7 @@ include:
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
-# exclude:
+exclude:
 #   - Gemfile
 #   - Gemfile.lock
 #   - node_modules
@@ -45,6 +45,13 @@ include:
 #   - vendor/cache/
 #   - vendor/gems/
 #   - vendor/ruby/
+  - _posts/2010-01-07-post-modified.md
+  - _posts/2010-02-05-post-quote.md
+  - _posts/2010-01-07-post-standard.md
+  - _posts/2010-03-07-post-link.md
+  - _posts/2010-01-08-post-chat.md
+  - _posts/2019-04-18-welcome-to-jekyll.md
+  - _posts/2010-02-05-post-notice.md
 
 # Plugins (previously gems:)
 plugins:
@@ -67,8 +74,8 @@ author:
     #  icon: "fab fa-fw fa-twitter-square"
     #  url: "https://twitter.com/"
     - label: "Email"
-      icon: "fab fa-fw envelope"
-      url: "sshhee@unist.ac.kr"
+      icon: "fas fa-fw fa-envelope-square"
+      url: "mailto:sshhee@unist.ac.kr"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
       url: "https://github.com/Sehun0819"
@@ -82,8 +89,8 @@ footer:
     #  icon: "fab fa-fw fa-twitter-square"
     #  url: "https://twitter.com/"
     - label: "Email"
-      icon: "fab fa-fw envelope"
-      url: "sshhee@unist.ac.kr"
+      icon: "fas fa-fw fa-envelope-square"
+      url: "mailto:sshhee@unist.ac.kr"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
       url: "https://github.com/Sehun0819"
