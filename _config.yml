@@ -52,7 +52,7 @@ exclude:
   - _posts/2010-01-08-post-chat.md
   - _posts/2019-04-18-welcome-to-jekyll.md
   - _posts/2010-02-05-post-notice.md
-
+  - _posts/2022-06-27-fuzz-rescript-parser.md
 # Plugins (previously gems:)
 plugins:
   - jekyll-paginate
