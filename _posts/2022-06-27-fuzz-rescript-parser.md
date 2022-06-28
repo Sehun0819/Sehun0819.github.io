@@ -10,7 +10,7 @@ tags:
 ---
 # AFL++ tutorial: How to crash Rescript parser
 
-This post is a tutorial of [AFL++](https://aflplus.plus/)[^aflpp], a popular fuzzer which has detected dozens of software bugs. In this post, the main target of fuzzing is a [parser](https://github.com/rescript-lang/syntax) of [Rescript](https://rescript-lang.org/) compiler. Motivated by [this](https://forum.rescript-lang.org/t/compiler-testing-via-fuzzing/3306/3), implying there might be bugs which can be caught with primary fuzzing techniques, I started my first bug hunt hoping it would help this young language system to be more mature.
+This post is a tutorial of [AFL++](https://aflplus.plus/)[^aflpp], one of famous fuzzing tools which has detected dozens of software bugs. In this post, we utilize this fuzzer to crash the [parser](https://github.com/rescript-lang/syntax) of [Rescript](https://rescript-lang.org/) compiler. Motivated by [this](https://forum.rescript-lang.org/t/compiler-testing-via-fuzzing/3306/3), implying there might be bugs which can be caught with primary fuzzing techniques, I started my first bug hunt hoping it would help this young language system to be more mature.
 
 ## Background
 
@@ -27,12 +27,12 @@ This section explains basic concept of evolutionary fuzzing which is a mainstrea
 Figure 1 is a brief summary of evolutionary fuzzing. 'Evolutionary' means, the fuzzer evolves by updating input corpus so that it can start another iteration based on known, effective start point. An input is regarded as useful if it found a new coverage, and added to input corpus. Many state-of-the-art fuzzers including [AFL](https://lcamtuf.coredump.cx/afl/) and [LibFuzer](https://llvm.org/docs/LibFuzzer.html) have adopted this strategy. For each interation in Figure 1,
 
 1. Fuzzing starts with user provided inputs, which comply with proper input type of PUT(program under test). In our case, they should be Rescript source files.
-2. Select one input from input corpus, and randomly mutate bytes.
-3. Execute PUT with mutated input.
+2. Select one input from input corpus, and randomly mutate in byte-level.
+3. Execute PUT with the mutated input.
 4. If PUT crashes, detect a bug by tracing PUT with given input.
-5. If mutated input explores new coverage, add it to input corpus.
+5. If the mutated input explores new coverage, add it to input corpus.
 
-Then, to recognize whether an input explored previously uncovered code, we should know what part of source code is explored during program execution with given input. To do that, the source code of PUT should be recompiled with instrumentation. That is, inserting extra code to target source in order that program execution outputs additional coverage information. Many languages are providing compilers which instrument in compile time, including Ocaml.
+To recognize whether an input explores previously uncovered code, we should know what part of source code is explored during program execution with given input. To do that, the source code of PUT should be recompiled with instrumentation. In other words, inserting extra code in order that program execution outputs additional coverage information. Many languages are providing compilers which instrument source codes in compile time, including Ocaml.
 
 ## Setup
 
@@ -43,7 +43,7 @@ There are 3 components to be installed. FYI, I've been using Ubuntu 20.04.
 
 #### Install AFL++
 
-- You can build AFL++ from source([document](https://github.com/AFLplusplus/AFLplusplus/blob/stable/docs/INSTALL.md)).
+- You can build AFL++ from source([instruction](https://github.com/AFLplusplus/AFLplusplus/blob/stable/docs/INSTALL.md)).
 - Alternatively, you can install AFL++ using apt-get or apt([instruction](https://github.com/AFLplusplus/AFLplusplus/blob/stable/docs/INSTALL.md)).
 
 #### Install (AFL version of) Ocaml compiler 
@@ -65,17 +65,13 @@ There are 3 components to be installed. FYI, I've been using Ubuntu 20.04.
 
 #### Install Rescript parser
 
-1. Install prerequisite opam packages.
-   ```sh
-   opam install dune reanalyze
-   ```
-2. Install Rescript parser([instruction](https://github.com/rescript-lang/syntax#setup--usage-for-repo-devs-only)).
+Install Rescript parser([instruction](https://github.com/rescript-lang/syntax#setup--usage-for-repo-devs-only)). (AFL version of)Ocaml compiler automatically instruments parser source codes so that its coverage can be measured by AFL++.
    > **Note**
    > In this post, previous commit(af00a46042c76ca8342dd6857ebe8776de00200c) is used instead of latest to reproduce currently know [bug](https://github.com/rescript-lang/syntax/pull/540).
    > If you want to follow, checkout to that commit before building.
 
 
-Assuming that Rescript parser is cloned under `$HOME`, The parser binary, which is the main target of fuzzing, would be located in
+Assuming that Rescript parser is cloned under `$HOME`, The parser binary, which is the target of fuzzing, would be located in
 `~/syntax/_build/default/cli/res_cli.exe`.
 
 ## Prepare Fuzzing Inputs
