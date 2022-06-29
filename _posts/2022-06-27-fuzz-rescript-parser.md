@@ -44,7 +44,11 @@ There are 3 components to be installed. FYI, I've been using Ubuntu 20.04.
 #### Install AFL++
 
 - You can build AFL++ from source([instruction](https://github.com/AFLplusplus/AFLplusplus/blob/stable/docs/INSTALL.md)).
-- Alternatively, you can install AFL++ using apt-get or apt([instruction](https://github.com/AFLplusplus/AFLplusplus/blob/stable/docs/INSTALL.md)).
+- Alternatively, you can install AFL++ using apt-get.
+  ```sh
+  sudo apt-get update
+  sudo apt-get -y install afl++
+  ```
 
 #### Install (AFL version of) Ocaml compiler 
 
@@ -67,7 +71,7 @@ There are 3 components to be installed. FYI, I've been using Ubuntu 20.04.
 
 Install Rescript parser([instruction](https://github.com/rescript-lang/syntax#setup--usage-for-repo-devs-only)). (AFL version of)Ocaml compiler automatically instruments parser source codes so that its coverage can be measured by AFL++.
    > **Note**
-   > In this post, previous commit(af00a46042c76ca8342dd6857ebe8776de00200c) is used instead of latest to reproduce currently know [bug](https://github.com/rescript-lang/syntax/pull/540).
+   > In this post, previous commit(af00a46042c76ca8342dd6857ebe8776de00200c) is used instead of latest to reproduce this [bug](https://github.com/rescript-lang/syntax/pull/540).
    > If you want to follow, checkout to that commit before building.
 
 
@@ -80,23 +84,23 @@ Gather valid inputs for PUT, and minimize input corpus by removing redundant inp
 
 #### Collect Rescript source files
 
-You can find a variety of open-source Rescript project repositories [here](https://www.libhunt.com/l/rescript). Gather them in a directory and extract only rescript sources.
+Gather Rescript repositories in a directory and copy only rescript sources.
 1. Make a directory `rescript_projs` under `$HOME`.
    ```sh
    cd ~
    mkdir rescript_projs
    ```
-2. Clone Rescript repositories.
+2. Clone any available Rescript repositories. You can find a variety of Rescript repos in [LibHunt](https://www.libhunt.com/l/rescript). Or, using just Rescript parser repository is a good choice as there are quite a lot of Rescript sources including testing inputs.
    ```sh
    cd rescript_projs
-   git clone <git repo>
-   ... # repeat
+   git clone git@github.com:rescript-lang/syntax.git
+   # clone any Rescript repositories you want.
    ```
-3. Extract Rescript source files in another directory `rs_files`.
+3. Copy only Rescript sources into another directory `rs_files`.
    ```sh
    cd ~
-   mkdir re_files
-   find rescript_projs -name {'*.res', '*.resi'} | xargs cp -t rs_files/
+   mkdir rs_files
+   find rescript_projs -type f \( -name "*.res" -o -name "*.resi" \) | xargs cp -t rs_files/
    ```
 
 #### Minimize input corpus
@@ -107,6 +111,14 @@ afl-cmin -i ~/rs_files -o ~/rs_files_unique -- ~/syntax/_build/default/cli/res_c
 ```
 This command copies uniques inputs from `rs_files` to `rs_files_unique`, which is also created automatically. `@@` is a place holder where a fuzzed input is supposed to be.
 
+You can see more than half of sources from Rescript parser repo were thrown away, through this minimization process.
+```sh
+$ ls ~/rs_files | wc -l
+1069
+$ ls ~/rs_files_unique | wc -l
+496
+```
+
 ## Do Fuzzing
 
 Start fuzzing by typing a command below. Again, `fuzz_report`, directory for report is created automatically.
@@ -115,17 +127,17 @@ afl-fuzz -i ~/rs_files_unique -o ~/fuzz_report -- ~/syntax/_build/default/cli/re
 ```
 You will see an interface that shows fuzzing status.
 
-Crashing inputs can be found in `~/fuzz_report/...`.
+Crashing inputs can be found in `~/fuzz_report/crashes`.
 
 You can manually crash the parser with found crashing inputs, like
 ```sh
-~/syntax/_build/default/cli/res_cli.exe ~/fuzz_report/...
+~/syntax/_build/default/cli/res_cli.exe ~/fuzz_report/crashes/<crashing input>
 ```
 
 To trace a call stack for debuggin, execute parser with setting ocaml environment variable.
 ```sh
 export OCAMLRUNPARAM=b
-~/syntax/_build/default/cli/res_cli.exe ~/fuzz_report/...
+~/syntax/_build/default/cli/res_cli.exe ~/fuzz_report/crashes/<crashing input>
 ```
 
 ## Conclusion
