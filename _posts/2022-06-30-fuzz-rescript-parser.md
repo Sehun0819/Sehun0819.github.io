@@ -16,7 +16,7 @@ This post is a tutorial of [AFL++](https://aflplus.plus/)[^aflpp], one of famous
 
 This section explains basic concept of evolutionary fuzzing which is a mainstream of fuzzing technique. You can use AFL++ without reading this explanatory section, so if you don't mind how the fuzzer struggles with finding bug you can skip this and go to [Setup](#setup) directly.
 
-![image](evolutionary_fuzzing.png)
+![image](/assets/images/evolutionary_fuzzing.png)
 
 Above figure is a brief summary of evolutionary fuzzing. 'Evolutionary' means, the fuzzer evolves by updating input corpus so that it can start another iteration based on known, effective start point. An input is regarded as useful if it found a new coverage, and added to input corpus. Many state-of-the-art fuzzers including [AFL](https://lcamtuf.coredump.cx/afl/) and [LibFuzer](https://llvm.org/docs/LibFuzzer.html) have adopted this strategy. For each interation in Figure 1,
 
@@ -67,7 +67,6 @@ Install Rescript parser([instruction](https://github.com/rescript-lang/syntax#se
    > **Note**
    > In this post, previous commit(af00a46042c76ca8342dd6857ebe8776de00200c) is used instead of latest to reproduce this [bug](https://github.com/rescript-lang/syntax/pull/540).
    > If you want to follow, checkout to that commit before building.
-
 
 Assuming that Rescript parser is cloned under `$HOME`, The parser binary, which is the target of fuzzing, would be located in
 `~/syntax/_build/default/cli/res_cli.exe`.
@@ -121,7 +120,7 @@ afl-fuzz -i ~/rs_files_unique -o ~/fuzz_report -- ~/syntax/_build/default/cli/re
 ```
 You will see an interface that shows fuzzing status.
 
-![image](aflplusplus.png)
+![image](/assets/images/aflplusplus.png)
 
 Crashing inputs can be found in `~/fuzz_report/default/crashes`.
 This is the input made by AFL++, which crashed (that version of) Rescript parser.
