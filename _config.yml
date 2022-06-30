@@ -35,7 +35,7 @@ timezone: # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 comments:
   provider  : "disqus"
   disqus:
-    shourtname: "Sehun0819-github-io"
+    shourtname: "sehun0819-github-io"
 
 include:
   - _pages
