@@ -111,12 +111,12 @@ afl-cmin -i ~/rs_files -o ~/rs_files_unique -- ~/syntax/_build/default/cli/res_c
 ```
 This command copies uniques inputs from `rs_files` to `rs_files_unique`, which is also created automatically. `@@` is a place holder where a fuzzed input is supposed to be.
 
-You can see more than half of sources from Rescript parser repo were thrown away, through this minimization process.
+You can see more than 40% of sources from Rescript parser repo were thrown away, through this minimization process.
 ```sh
 $ ls ~/rs_files | wc -l
 1069
 $ ls ~/rs_files_unique | wc -l
-496
+626
 ```
 
 ## Do Fuzzing
@@ -127,22 +127,60 @@ afl-fuzz -i ~/rs_files_unique -o ~/fuzz_report -- ~/syntax/_build/default/cli/re
 ```
 You will see an interface that shows fuzzing status.
 
-Crashing inputs can be found in `~/fuzz_report/crashes`.
+<figure>
+  <center><img
+  src="aflplusplus.png"
+  width="600"
+  alt="abcde"></center>
+  <center><figcaption> Figure 2. AFL++ status window </figcaption></center>
+</figure>
 
-You can manually crash the parser with found crashing inputs, like
-```sh
-~/syntax/_build/default/cli/res_cli.exe ~/fuzz_report/crashes/<crashing input>
+Crashing inputs can be found in `~/fuzz_report/default/crashes`.
+This is the input made by AFL++, which crashed (that version of) Rescript parser.
+```ocaml
+a->f(b, c)->g(d, e)
+
+Element.querySelectorAll(selector, element)
+->NodeList.toArray
+->Array.keepMap(Elemelet options: string => Warp_Types_Client.t<Warp_Types_ResponseType.payload<option<string>>>
+
+let get: string => Warp_Types_Client.t<Warp_Types_ResponseType.payload<option<string>>>
+
+let head: string => Warp_Types_Client.t<Warp_Types_ResponseType.payload<optio[<string>>>
+
+let post: string => Warp_Types_Client.t<Warp_Types_Respon<9f>eType.payload<option<string>>>
+
+let put: string => Warp_Types_Client.t<Warp_Types_ResponseType.payload<option<string>>>
+
+let delete: string => ^B^@rp_Types_Client.t<Warp_Types_ResponseType.payload<option<string>>>
+
+let trace: string => Warp_Types_Client.t<Warp_Types_ResponseType.payload<optio
 ```
 
-To trace a call stack for debuggin, execute parser with setting ocaml environment variable.
+You can manually crash the parser with found crashing inputs. Please note that you should set Ocaml environment variable to trace a call stack.
 ```sh
 export OCAMLRUNPARAM=b
-~/syntax/_build/default/cli/res_cli.exe ~/fuzz_report/crashes/<crashing input>
+~/syntax/_build/default/cli/res_cli.exe ~/fuzz_report/default/crashes/<crashing input>
+```
+
+The log points out the terminating source location, which has been handled by this [PR](https://github.com/rescript-lang/syntax/pull/540).
+```
+Fatal error: exception Stack overflow
+Raised by primitive operation at Syntax__Res_parser.expect in file "src/res_parser.ml", line 122, characters 5-20
+Called from Syntax__Res_core.parseHashIdent in file "src/res_core.ml", line 676, characters 2-22
+Called from Syntax__Res_core.parsePolymorphicVariantType.loop in file "src/res_core.ml", line 4978, characters 32-69
+Called from Syntax__Res_core.parsePolymorphicVariantType.loop in file "src/res_core.ml", line 4979, characters 21-27
+Called from Syntax__Res_core.parsePolymorphicVariantType.loop in file "src/res_core.ml", line 4979, characters 21-27
+Called from Syntax__Res_core.parsePolymorphicVariantType.loop in file "src/res_core.ml", line 4979, characters 21-27
+Called from Syntax__Res_core.parsePolymorphicVariantType.loop in file "src/res_core.ml", line 4979, characters 21-27
+...
 ```
 
 ## Conclusion
 
-AFL++ was able to find previously unknown bugs of Rescript parser. Moreover, it seems that there are still rooms for this tool to play an important role. The reason why this general fuzzing tool works well comes from the fact that the input type of parser is 'string', which has a simple, one-dimensional structure. Therefore naive application of this tool to Rescript compiler won't work because byte-level mutation of AFL++ would probably make input source code invalid, leading to failure in parsing process.
+AFL++ was able to find previously unknown bugs of Rescript parser. Moreover, it seems that there are still rooms for this tool to play an important role. I hope this post help Rescript developers to utilize AFL++ to make Rescript parser more robust.
+
+The reason why this general fuzzing tool works well comes from the fact that the input type of parser is 'string', which has a simple, one-dimensional structure. Therefore If you want to fuzz Rescript compiler whose input must be valid AST, naive application of this tool won't work because byte-level mutation of AFL++ would probably make input source code invalid, leading to failure in parsing process. But anyway, if it is all you need to find bugs of parser, AFL++ works for you.
 
 [^aflpp]: A community-maintained version of [AFL](https://lcamtuf.coredump.cx/afl/), which equips additional features and enhancements.
 [^seedselection]: Herrera et al., "Seed selection for successful fuzzing". ISSTA 2021. https://doi.org/10.1145/3460319.3464795
