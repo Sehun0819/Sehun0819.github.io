@@ -16,15 +16,9 @@ This post is a tutorial of [AFL++](https://aflplus.plus/)[^aflpp], one of famous
 
 This section explains basic concept of evolutionary fuzzing which is a mainstream of fuzzing technique. You can use AFL++ without reading this explanatory section, so if you don't mind how the fuzzer struggles with finding bug you can skip this and go to [Setup](#setup) directly.
 
-<figure>
-  <center><img
-  src="evolutionary_fuzzing.png"
-  width="600"
-  alt="abcde"></center>
-  <center><figcaption> Figure 1. Evolutionary Fuzzing </figcaption></center>
-</figure>
+![image](evolutionary_fuzzing.png)
 
-Figure 1 is a brief summary of evolutionary fuzzing. 'Evolutionary' means, the fuzzer evolves by updating input corpus so that it can start another iteration based on known, effective start point. An input is regarded as useful if it found a new coverage, and added to input corpus. Many state-of-the-art fuzzers including [AFL](https://lcamtuf.coredump.cx/afl/) and [LibFuzer](https://llvm.org/docs/LibFuzzer.html) have adopted this strategy. For each interation in Figure 1,
+Above figure is a brief summary of evolutionary fuzzing. 'Evolutionary' means, the fuzzer evolves by updating input corpus so that it can start another iteration based on known, effective start point. An input is regarded as useful if it found a new coverage, and added to input corpus. Many state-of-the-art fuzzers including [AFL](https://lcamtuf.coredump.cx/afl/) and [LibFuzer](https://llvm.org/docs/LibFuzzer.html) have adopted this strategy. For each interation in Figure 1,
 
 1. Fuzzing starts with user provided inputs, which comply with proper input type of PUT(program under test). In our case, they should be Rescript source files.
 2. Select one input from input corpus, and randomly mutate in byte-level.
@@ -127,13 +121,7 @@ afl-fuzz -i ~/rs_files_unique -o ~/fuzz_report -- ~/syntax/_build/default/cli/re
 ```
 You will see an interface that shows fuzzing status.
 
-<figure>
-  <center><img
-  src="aflplusplus.png"
-  width="600"
-  alt="abcde"></center>
-  <center><figcaption> Figure 2. AFL++ status window </figcaption></center>
-</figure>
+![image](aflplusplus.png)
 
 Crashing inputs can be found in `~/fuzz_report/default/crashes`.
 This is the input made by AFL++, which crashed (that version of) Rescript parser.
