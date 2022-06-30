@@ -31,6 +31,12 @@ paginate: 5 # amount of posts to show
 paginate_path: /page:num/
 timezone: # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
+# For comment support in posts
+comments:
+  provider  : "disqus"
+  disqus:
+    shourtname: "Sehun0819-github-io"
+
 include:
   - _pages
 
