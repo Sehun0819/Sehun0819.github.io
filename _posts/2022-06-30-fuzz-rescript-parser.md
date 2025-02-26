@@ -21,7 +21,7 @@ This post is a tutorial of [AFL++](https://aflplus.plus/)[^aflpp], one of the mo
 
 This section explains basic concept of evolutionary fuzzing which is a mainstream of fuzzing technique[^fuzzingsurvey]. You can use AFL++ without reading this explanatory section, so if you don't mind how the fuzzer struggles with finding bug you can skip this and go to [Setup](#setup) directly.
 
-![image](/assets/images/evolutionary_fuzzing.png)
+![image](/images/evolutionary_fuzzing.png)
 
 Above figure is a brief summary of evolutionary fuzzing. 'Evolutionary' means, the fuzzer evolves by updating input corpus so that it can start another iteration based on known, effective start point. An input is regarded as useful if it found a new coverage, and added to input corpus. Many state-of-the-art fuzzers including [AFL](https://lcamtuf.coredump.cx/afl/) and [LibFuzer](https://llvm.org/docs/LibFuzzer.html) have adopted this strategy. For each interation in above figure,
 
@@ -124,7 +124,7 @@ afl-fuzz -i ~/rs_files_unique -o ~/fuzz_report -- ~/syntax/_build/default/cli/re
 ```
 You will see an interface that shows fuzzing status.
 
-![image](/assets/images/aflplusplus.png)
+![image](/images/aflplusplus.png)
 
 Fuzzed inputs which successfully crashed the parser can be found in `~/fuzz_report/default/crashes/`.
 Below is one of fuzzed inputs made by AFL++, which crashed (older version of) ReScript parser.
